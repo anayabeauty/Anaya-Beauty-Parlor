@@ -1,0 +1,306 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #ffb6c1;
+  /* Makeup setup background image (Flatlay cosmetics & brushes setup - NO people) */
+  background-image: 
+    linear-gradient(rgba(255, 182, 193, 0.70), rgba(219, 112, 147, 0.80)),
+    url('https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1600&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* Header & Animated Title */
+header {
+  background: linear-gradient(135deg, #ff1493, #ff69b4);
+  padding: 1.8rem 1rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.animated-title {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  animation: glow 2s ease-in-out infinite alternate;
+  margin: 0;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px #fff, 0 0 10px #ff1493, 0 0 15px #ff1493;
+  }
+  to {
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff69b4, 0 0 35px #ffffff;
+  }
+}
+
+/* Status Badge */
+.badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: #ffffff;
+  margin-top: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.open { color: #2e7d32; }
+.closed { color: #c62828; }
+
+/* Navigation Bar Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  background: #db7093;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  flex-wrap: wrap;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  padding: 14px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tabs button:hover {
+  background: #c71585;
+}
+
+/* Container & Cards */
+main {
+  padding: 2rem 1rem;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+h2 {
+  color: #c71585;
+  margin-top: 0;
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 1.2rem;
+}
+
+/* WhatsApp-Style Pink Service Bubbles */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.item-list li {
+  background: #ffe4e1;
+  color: #4a4a4a;
+  padding: 14px 18px;
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ffb6c1;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.item-list li:hover {
+  transform: translateY(-2px);
+}
+
+.item-list li strong {
+  color: #c71585;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Form Controls & Inputs */
+.fee-notice {
+  background: #fff0f5;
+  border-left: 4px solid #ff69b4;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+input, select {
+  padding: 12px 15px;
+  border: 1.5px solid #ffb6c1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus {
+  border-color: #c71585;
+}
+
+.pay-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.jazzcash { background: #eb1c24; }
+.easypaisa { background: #00a651; }
+
+.token-box {
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  padding: 18px;
+  text-align: center;
+  margin-top: 20px;
+  border-radius: 10px;
+}
+
+#token-num {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2e7d32;
+  margin: 8px 0;
+}
+
+/* Products & Gallery Grids */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+}
+
+.product-card, .gallery-card {
+  border: 1px solid #ffe4e1;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.grid-container img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Live Chat Interface */
+.chat-container {
+  height: 250px;
+  overflow-y: auto;
+  border: 1.5px solid #ffb6c1;
+  padding: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 75%;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.msg.user {
+  background: #ff69b4;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.msg.owner {
+  background: #f0f0f0;
+  color: #333;
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.chat-input-box {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-box input {
+  flex: 1;
+}
+
+.chat-input-box button {
+  background: #c71585;
+  color: white;
+  border: none;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}

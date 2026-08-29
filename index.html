@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anaya Beauty Parlor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1 class="animated-title">ANAYA BEAUTY PARLOR</h1>
+    <span id="status-badge" class="badge">Loading status...</span>
+  </header>
+
+  <nav class="tabs">
+    <button onclick="switchTab('prices')">Prices & Services</button>
+    <button onclick="switchTab('booking')">Book Appointment</button>
+    <button onclick="switchTab('products')">Products</button>
+    <button onclick="switchTab('gallery')">Gallery</button>
+    <button onclick="switchTab('chat')">Live Chat</button>
+  </nav>
+
+  <main>
+    <section id="prices-tab" class="tab-content active">
+      <div class="card">
+        <h2>Services & Rates</h2>
+        <ul id="services-list" class="item-list">
+          </ul>
+      </div>
+    </section>
+
+    <section id="booking-tab" class="tab-content">
+      <div class="card">
+        <h2>Book Appointment</h2>
+        <p class="fee-notice">Advance Token Fee: <strong>50 PKR</strong></p>
+        <form id="booking-form">
+          <input type="text" id="cust-name" placeholder="Your Full Name" required>
+          <input type="tel" id="cust-phone" placeholder="Phone Number" required>
+          <select id="cust-service" required>
+            <option value="">-- Select Service --</option>
+          </select>
+
+          <p class="label">Pay 50 PKR via Mobile Wallet:</p>
+          <div class="pay-buttons">
+            <button type="button" class="btn jazzcash" onclick="handleBooking('JazzCash')">Pay JazzCash</button>
+            <button type="button" class="btn easypaisa" onclick="handleBooking('Easypaisa')">Pay Easypaisa</button>
+          </div>
+        </form>
+
+        <div id="token-result" class="hidden token-box">
+          <h3>Booking Confirmed!</h3>
+          <p>Your Token Number:</p>
+          <div id="token-num"></div>
+          <small>Show this token upon arrival.</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="products-tab" class="tab-content">
+      <div class="card">
+        <h2>Beauty Products</h2>
+        <div id="products-list" class="grid-container"></div>
+      </div>
+    </section>
+
+    <section id="gallery-tab" class="tab-content">
+      <div class="card">
+        <h2>Our Gallery</h2>
+        <div id="gallery-list" class="grid-container"></div>
+      </div>
+    </section>
+
+    <section id="chat-tab" class="tab-content">
+      <div class="card">
+        <h2>Chat with Owner</h2>
+        <div id="chat-box" class="chat-container"></div>
+        <div class="chat-input-box">
+          <input type="text" id="chat-msg" placeholder="Type your message here...">
+          <button type="button" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
