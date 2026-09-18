@@ -1,111 +1,354 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anaya Beauty Parlor</title>
-  
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+/* Global Styles & Background */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: #fce4ec; color: #333; padding: 15px; }
-    header { text-align: center; margin-bottom: 15px; }
-    h1 { color: #c71585; margin-bottom: 5px; }
-    
-    .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
-    .badge.open { background: #d4edda; color: #155724; }
-    .badge.closed { background: #f8d7da; color: #721c24; }
+body {
+  background: url('https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+  background-size: cover;
+  color: #333;
+  padding: 10px;
+  max-width: 900px;
+  margin: 0 auto;
+}
 
-    nav { display: flex; gap: 8px; justify-content: center; margin: 15px 0; flex-wrap: wrap; }
-    nav button { background: white; border: 1px solid #ffb6c1; padding: 8px 14px; border-radius: 20px; font-weight: 600; color: #c71585; cursor: pointer; }
-    
-    .tab-content { display: none; background: white; padding: 15px; border-radius: 12px; border: 1px solid #ffb6c1; max-width: 600px; margin: 0 auto; }
-    .tab-content.active { display: block; }
+.hidden {
+  display: none !important;
+}
 
-    ul { list-style: none; }
-    li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ffe4e1; font-size: 0.9rem; }
-    
-    input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 1px solid #ffb6c1; border-radius: 8px; }
-    .btn { background: #c71585; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 5px; }
-    
-    .chat-container { height: 180px; overflow-y: auto; border: 1px solid #ffb6c1; padding: 8px; border-radius: 8px; margin-bottom: 8px; background: #fafafa; }
-    .msg { padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; max-width: 85%; font-size: 0.85rem; }
-    .msg.user { background: #ffe4e1; margin-left: auto; }
-    .msg.owner { background: #c71585; color: white; margin-right: auto; }
-    
-    .hidden { display: none; }
-    .card-pass { background: #fff0f5; border: 2px dashed #c71585; padding: 12px; border-radius: 10px; margin-top: 10px; text-align: center; }
-  </style>
-</head>
-<body>
+/* Header Styling */
+header {
+  text-align: center;
+  margin-bottom: 15px;
+}
 
-  <header>
-    <h1>Anaya Beauty Parlor</h1>
-    <span id="status-badge" class="badge closed">● LOADING STATUS...</span>
-  </header>
+.header-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px;
+  border-radius: 12px;
+  background-image: linear-gradient(rgba(255, 240, 245, 0.88), rgba(255, 240, 245, 0.88)), 
+                    url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  border: 2px solid #ffb6c1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
 
-  <nav>
-    <button onclick="switchTab('services')">Services</button>
-    <button onclick="switchTab('booking')">Book Now</button>
-    <button onclick="switchTab('products')">Products Store</button>
-    <button onclick="switchTab('gallery')">Gallery</button>
-    <button onclick="switchTab('chat')">Live Support</button>
-  </nav>
+.animated-title {
+  font-weight: 900;
+  font-size: 1.6rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  background: linear-gradient(90deg, #ff1493, #e60000, #4169e1, #e0ac69, #ff69b4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0px 0px 4px #ffffff);
+}
 
-  <!-- Services Tab -->
-  <div id="services-tab" class="tab-content active">
-    <h2 style="color:#c71585; margin-bottom:10px;">Our Services & Rates</h2>
-    <ul id="services-list"></ul>
-  </div>
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
 
-  <!-- Booking Tab -->
-  <div id="booking-tab" class="tab-content">
-    <h2 style="color:#c71585; margin-bottom:10px;">Book Appointment</h2>
-    <input type="text" id="cust-name" placeholder="Full Name">
-    <input type="text" id="cust-phone" placeholder="Phone Number">
-    <select id="cust-service"><option value="">-- Select Service --</option></select>
-    
-    <p style="font-size:0.85rem; margin: 10px 0 5px; font-weight:bold;">Pay 50 PKR Advance Token Fee:</p>
-    <button class="btn" style="background:#6f2da8; margin-bottom:5px;" onclick="handleBooking('JazzCash')">Pay via JazzCash (0300-XXXXXXX)</button>
-    <button class="btn" style="background:#37b34a;" onclick="handleBooking('EasyPaisa')">Pay via EasyPaisa (0300-XXXXXXX)</button>
+.badge.open {
+  background: #d4edda;
+  color: #155724;
+}
 
-    <div id="token-result" class="hidden">
-      <div id="appointment-card" class="card-pass">
-        <h3 style="color:#c71585;">Appointment Pass</h3>
-        <p><strong>Token:</strong> <span id="token-num"></span></p>
-        <p><strong>Name:</strong> <span id="pass-name"></span></p>
-        <p><strong>Phone:</strong> <span id="pass-phone"></span></p>
-        <p><strong>Service:</strong> <span id="pass-service"></span></p>
-        <p><strong>Date & Time:</strong> <span id="pass-date"></span> at <span id="pass-time"></span></p>
-      </div>
-      <button class="btn" style="background:#007bff; margin-top:8px;" onclick="downloadAppointmentPass()">Download Pass Image</button>
-      <button class="btn" style="background:#25d366; margin-top:5px;" onclick="sendWhatsAppConfirmation()">Confirm on WhatsApp</button>
-    </div>
-  </div>
+.badge.closed {
+  background: #f8d7da;
+  color: #721c24;
+}
 
-  <!-- Products Tab -->
-  <div id="products-tab" class="tab-content">
-    <h2 style="color:#c71585; margin-bottom:10px;">Beauty Products</h2>
-    <div id="products-list"></div>
-  </div>
+/* Desktop Layout (Sidebar Left, Content Right) */
+.layout-wrapper {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
 
-  <!-- Gallery Tab -->
-  <div id="gallery-tab" class="tab-content">
-    <h2 style="color:#c71585; margin-bottom:10px;">Photo Gallery</h2>
-    <div id="gallery-list"></div>
-  </div>
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ffb6c1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-  <!-- Chat Tab -->
-  <div id="chat-tab" class="tab-content">
-    <h2 style="color:#c71585; margin-bottom:10px;">Live Chat Support</h2>
-    <div id="chat-box" class="chat-container"></div>
-    <input type="text" id="chat-msg" placeholder="Type message...">
-    <button class="btn" onclick="sendMessage()">Send Message</button>
-  </div>
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+.tabs button {
+  background: #ffffff;
+  border: 1px solid #ffb6c1;
+  color: #c71585;
+  padding: 10px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.tabs button:hover, .tabs button:active {
+  background: #c71585;
+  color: #ffffff;
+}
+
+.content-area {
+  flex-grow: 1;
+  width: 100%;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 15px;
+}
+
+.card h2 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Services & Items Layout */
+.item-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 50px; 
+  background: #fff0f5;
+  border: 1px solid #ffb6c1;
+}
+
+.item-list li .service-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #333;
+}
+
+.item-list li .price-tag {
+  background: #ff69b4; 
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 50px; 
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+/* MOBILE RESPONSIVE DESIGN (Screens under 680px) */
+@media (max-width: 680px) {
+  body {
+    padding: 8px;
+  }
+
+  .animated-title {
+    font-size: 1.4rem;
+  }
+
+  /* Convert layout to vertical flow */
+  .layout-wrapper {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Turn Sidebar into a horizontally scrollable bar on mobile */
+  .sidebar {
+    width: 100%;
+    padding: 8px;
+    position: sticky;
+    top: 5px;
+    z-index: 100;
+  }
+
+  .tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .tabs button {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .pay-buttons {
+    flex-direction: column;
+  }
+}
+
+/* Form Controls & Buttons */
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ffb6c1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.fee-notice {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.pay-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.btn.jazzcash { background: #d9534f; }
+.btn.easypaisa { background: #5cb85c; }
+.btn.download-btn { background: #c71585; margin-top: 8px; width: 100%; }
+.btn.whatsapp-btn { background: #25d366; margin-top: 8px; width: 100%; }
+
+/* Pass & Chat Box Layout */
+.web-appointment-pass {
+  background: #ffffff;
+  border: 2px solid #ffb6c1;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 12px 0;
+}
+
+.pass-header {
+  text-align: center;
+  border-bottom: 2px dashed #ffe4e1;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.brand-title {
+  color: #c71585;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.brand-tagline {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.token-badge-container {
+  background: #fff0f5;
+  border: 2px solid #ff69b4;
+  border-radius: 10px;
+  text-align: center;
+  padding: 8px;
+  margin-top: 10px;
+}
+
+.token-label {
+  font-size: 0.7rem;
+  color: #c71585;
+  font-weight: bold;
+}
+
+.token-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #c71585;
+}
+
+.pass-footer p {
+  font-size: 0.75rem;
+  color: #777;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.chat-container {
+  height: 220px;
+  overflow-y: auto;
+  border: 1px solid #ffe4e1;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.chat-input-box {
+  display: flex;
+  gap: 6px;
+}
+
+.chat-input-box input { margin-bottom: 0; }
+.chat-input-box button {
+  background: #c71585;
+  color: white;
+  border: none;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.msg {
+  padding: 6px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  max-width: 85%;
+  font-size: 0.85rem;
+}
+
+.msg.user { background: #ffe4e1; margin-left: auto; }
+.msg.owner { background: #f0f0f0; margin-right: auto; }
