@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Anaya Beauty Parlor - Owner Panel</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #fce4ec; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
+    header { text-align: center; margin-bottom: 15px; }
+    h1 { color: #c71585; font-size: 1.5rem; margin-bottom: 4px; }
+    p.subtitle { font-size: 0.85rem; color: #666; }
+
+    /* Responsive Grid for Desktop & Android Mobile */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    
+    .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid #ffb6c1; }
+    .card h2 { color: #c71585; font-size: 1.05rem; margin-bottom: 10px; border-bottom: 2px solid #ffe4e1; padding-bottom: 4px; }
+    
+    /* Parlor Status Switch */
+    .status-container { display: flex; justify-content: space-between; align-items: center; }
+    .status-badge { font-weight: bold; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; }
+    .open { background: #d4edda; color: #155724; }
+    .closed { background: #f8d7da; color: #721c24; }
+    .btn-toggle { background: #c71585; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    
+    /* Input Fields & File Pickers */
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      border: 1px solid #ffb6c1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .file-input-wrapper {
+      margin-bottom: 10px;
+    }
+
+    .file-input-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #c71585;
+      margin-bottom: 4px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px dashed #c71585;
+      border-radius: 8px;
+      background: #fff0f5;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-action {
+      background: #c71585;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .btn-action:active {
+      background: #a0106a;
+    }
+
+    /* List Containers */
+    .list-container { max-height: 260px; overflow-y: auto; }
+    .item-box { background: #fff0f5; border: 1px solid #ffb6c1; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
+    .item-box strong { color: #c71585; }
+    .item-img { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; margin-top: 6px; }
+
+    /* Live Chat Container */
+    .chat-container { height: 180px; overflow-y: auto; border: 1px solid #ffb6c1; padding: 8px; border-radius: 8px; margin-bottom: 8px; background: #fafafa; }
+    .msg { padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; max-width: 85%; font-size: 0.82rem; }
+    .msg.user { background: #ffe4e1; margin-right: auto; }
+    .msg.owner { background: #c71585; color: white; margin-left: auto; }
+
+    /* Mobile Android Tweaks */
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .admin-grid { grid-template-columns: 1fr; }
+      .card { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Owner Dashboard</h1>
+    <p class="subtitle">Manage Parlor Status, Direct Photo Uploads & Orders</p>
+  </header>
+
+  <div class="admin-grid">
+
+    <!-- Column 1: Status & Live Chat -->
+    <div class="card">
+      <h2>1. Parlor Availability</h2>
+      <div class="status-container">
+        <span id="current-status" class="status-badge closed">LOADING...</span>
+        <button class="btn-toggle" onclick="toggleStatus()">Toggle</button>
+      </div>
+
+      <h2 style="margin-top: 20px;">Customer Live Chat</h2>
+      <div id="chat-box" class="chat-container"></div>
+      <input type="text" id="owner-msg" placeholder="Type reply as Owner...">
+      <button class="btn-action" onclick="sendOwnerMessage()">Send Reply</button>
+    </div>
+
+    <!-- Column 2: Live Appointments -->
+    <div class="card">
+      <h2>2. Live Appointments</h2>
+      <div id="bookings-list" class="list-container">
+        <p style="font-size: 0.85rem; color: #666;">No appointments booked yet.</p>
+      </div>
+    </div>
+
+    <!-- Column 3: Add & Upload Products -->
+    <div class="card">
+      <h2>3. Products Store</h2>
+      <form onsubmit="event.preventDefault(); uploadProduct();">
+        <input type="text" id="prod-name" placeholder="Product Title" required>
+        <input type="number" id="prod-price" placeholder="Price (PKR)" required>
+        
+        <div class="file-input-wrapper">
+          <label class="file-input-label">📷 Select Product Photo:</label>
+          <input type="file" id="prod-file" accept="image/*" required>
+        </div>
+
+        <button type="submit" id="btn-prod" class="btn-action">Upload Product</button>
+      </form>
+
+      <h2 style="margin-top: 15px;">Active Products</h2>
+      <div id="products-admin-list" class="list-container"></div>
+    </div>
+
+    <!-- Column 4: Customer Product Orders -->
+    <div class="card">
+      <h2>4. Product Orders</h2>
+      <div id="orders-list" class="list-container">
+        <p style="font-size: 0.85rem; color: #666;">No product orders received.</p>
+      </div>
+    </div>
+
+    <!-- Column 5: Add & Upload Gallery Photos -->
+    <div class="card">
+      <h2>5. Gallery Photos</h2>
+      <form onsubmit="event.preventDefault(); uploadGalleryPhoto();">
+        <input type="text" id="gal-title" placeholder="Photo Caption / Title" required>
+        
+        <div class="file-input-wrapper">
+          <label class="file-input-label">📷 Select Gallery Photo:</label>
+          <input type="file" id="gal-file" accept="image/*" required>
+        </div>
+
+        <button type="submit" id="btn-gal" class="btn-action">Upload Photo</button>
+      </form>
+
+      <h2 style="margin-top: 15px;">Published Gallery Photos</h2>
+      <div id="gallery-admin-list" class="list-container"></div>
+    </div>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

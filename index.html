@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anaya Beauty Parlor</title>
+  
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-box">
+      <h1 class="animated-title">Anaya Beauty Parlor</h1>
+      <div id="status-badge" class="badge closed">● CLOSED TODAY</div>
+    </div>
+  </header>
+
+  <!-- Sidebar + Content Wrapper -->
+  <div class="layout-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="tabs">
+        <button onclick="switchTab('services')">Prices & Services</button>
+        <button onclick="switchTab('booking')">Book Appointment</button>
+        <button onclick="switchTab('location')">Location</button>
+        <button onclick="switchTab('products')">Products</button>
+        <button onclick="switchTab('gallery')">Gallery</button>
+        <button onclick="switchTab('chat')">Live Chat</button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Body -->
+    <main class="content-area">
+      <!-- Prices & Services Tab -->
+      <section id="services-tab" class="tab-content active">
+        <div class="card">
+          <h2>Our Services & Prices</h2>
+          <ul id="services-list" class="item-list"></ul>
+        </div>
+      </section>
+
+      <!-- Booking Tab -->
+      <section id="booking-tab" class="tab-content">
+        <div class="card">
+          <h2>Book Appointment</h2>
+          <p class="fee-notice">Advance Token Fee: <strong>50 PKR only</strong> (Service balance payable at salon)</p>
+          
+          <form id="booking-form" onsubmit="event.preventDefault();">
+            <input type="text" id="cust-name" placeholder="Your Full Name" required>
+            <input type="tel" id="cust-phone" placeholder="Phone Number" required>
+            <select id="cust-service" required>
+              <option value="">-- Select Service --</option>
+            </select>
+
+            <div class="pay-buttons">
+              <button type="button" class="btn jazzcash" onclick="handleBooking('JazzCash')">Pay 50 PKR (JazzCash)</button>
+              <button type="button" class="btn easypaisa" onclick="handleBooking('Easypaisa')">Pay 50 PKR (Easypaisa)</button>
+            </div>
+          </form>
+
+          <div id="token-result" class="token-box hidden">
+            <div id="appointment-card" class="web-appointment-pass">
+              <div class="pass-header">
+                <div class="brand-title">ANAYA BEAUTY PARLOR</div>
+                <div class="brand-tagline">Official Appointment Pass</div>
+              </div>
+
+              <div class="pass-body">
+                <div class="info-row"><span>Customer Name:</span> <strong id="pass-name">---</strong></div>
+                <div class="info-row"><span>Phone:</span> <strong id="pass-phone">---</strong></div>
+                <div class="info-row"><span>Date:</span> <strong id="pass-date">---</strong></div>
+                <div class="info-row"><span>Appointment Time:</span> <strong id="pass-time">---</strong></div>
+                <div class="info-row"><span>Service Selected:</span> <strong id="pass-service">---</strong></div>
+                <div class="info-row"><span>Parlor Address:</span> <strong><a href="https://maps.app.goo.gl/P9748vq2biYWFTbw6?g_st=aw" target="_blank" style="color: #c71585; text-decoration: underline;">Open Google Maps</a></strong></div>
+                <div class="info-row"><span>Advance Paid:</span> <strong id="pass-payment">50 PKR Token Fee</strong></div>
+
+                <div class="token-badge-container">
+                  <div class="token-label">TOKEN NUMBER</div>
+                  <div class="token-number" id="token-num">#00</div>
+                </div>
+              </div>
+
+              <div class="pass-footer">
+                <p>⚠️ Please reach the parlor at your assigned time. Pay remaining service charges upon arrival.</p>
+              </div>
+            </div>
+
+            <button class="btn download-btn" onclick="downloadAppointmentPass()">📷 Save Appointment Image</button>
+            <button class="btn whatsapp-btn" onclick="sendWhatsAppConfirmation()">📱 Confirm on WhatsApp</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Location Tab -->
+      <section id="location-tab" class="tab-content">
+        <div class="card" style="text-align: center;">
+          <h2>Find Our Parlor</h2>
+          <p>Visit us at our physical location below:</p>
+          <a href="https://maps.app.goo.gl/P9748vq2biYWFTbw6?g_st=aw" target="_blank" class="btn" style="background: #c71585; color: white; text-decoration: none; display: inline-block; margin-top: 10px; padding: 12px 20px; border-radius: 8px;">📍 Open Location in Google Maps</a>
+        </div>
+      </section>
+
+      <!-- Products Tab -->
+      <section id="products-tab" class="tab-content">
+        <div class="card">
+          <h2>Our Products</h2>
+          <div id="products-list"></div>
+        </div>
+      </section>
+
+      <!-- Gallery Tab -->
+      <section id="gallery-tab" class="tab-content">
+        <div class="card">
+          <h2>Gallery</h2>
+          <div id="gallery-list"></div>
+        </div>
+      </section>
+
+      <!-- Live Chat Tab -->
+      <section id="chat-tab" class="tab-content">
+        <div class="card">
+          <h2>Live Chat</h2>
+          <div id="chat-box" class="chat-container"></div>
+          <div class="chat-input-box">
+            <input type="text" id="chat-msg" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- External JavaScript Script -->
+  <script src="script.js"></script>
+</body>
+</html>
