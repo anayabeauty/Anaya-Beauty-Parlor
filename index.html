@@ -20,6 +20,35 @@
       color: #333;
     }
 
+    /* Auth Modal Overlay */
+    .auth-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .auth-box {
+      background: #fff;
+      padding: 25px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border: 2px solid #ff1493;
+    }
+
+    .auth-box h2 {
+      text-align: center;
+      color: #ff1493;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      border-bottom: none;
+    }
+
     header {
       text-align: center;
       background: rgba(255, 255, 255, 0.94);
@@ -178,24 +207,19 @@
       margin: 6px 0 4px 0;
     }
 
-    .chat-container {
-      height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ffb6c1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      background: #fafafa;
-    }
-
-    .msg { padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; max-width: 85%; font-size: 0.85rem; }
-    .msg.user { background: #ffe4e1; margin-left: auto; color: #d61c5a; }
-    .msg.owner { background: #ff1493; color: white; margin-right: auto; }
-
     .hidden { display: none; }
-    .card-pass {
+
+    .payment-box {
       background: #fff0f5;
       border: 2px dashed #ff1493;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .card-pass {
+      background: #e8f5e9;
+      border: 2px solid #28a745;
       padding: 14px;
       border-radius: 10px;
       margin-top: 10px;
@@ -204,6 +228,17 @@
   </style>
 </head>
 <body>
+
+  <!-- Account Registration / Login Modal -->
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-box">
+      <h2>Customer Sign In</h2>
+      <input type="text" id="user-name" placeholder="Full Name">
+      <input type="password" id="user-pass" placeholder="Password">
+      <input type="password" id="user-confirm-pass" placeholder="Confirm Password">
+      <button class="btn" onclick="handleCustomerLogin()">Enter Parlor</button>
+    </div>
+  </div>
 
   <header>
     <h1>Anaya Beauty Parlor</h1>
@@ -215,7 +250,7 @@
     <button class="nav-btn" onclick="switchTab('booking', this)">Book Now</button>
     <button class="nav-btn" onclick="switchTab('products', this)">Products Store</button>
     <button class="nav-btn" onclick="switchTab('gallery', this)">Gallery</button>
-    <button class="nav-btn" onclick="switchTab('chat', this)">Live Support</button>
+    <button class="nav-btn" onclick="switchTab('location', this)">Location</button>
   </nav>
 
   <!-- Services Tab -->
@@ -231,21 +266,33 @@
     <input type="text" id="cust-phone" placeholder="Phone Number">
     <select id="cust-service"><option value="">-- Select Service --</option></select>
     
-    <p style="font-size:0.85rem; margin: 10px 0 5px; font-weight:bold; color:#ff1493;">Pay 50 PKR Advance Token Fee:</p>
-    <button class="btn" style="background:#6f2da8; margin-bottom:5px;" onclick="handleBooking('JazzCash')">Pay via JazzCash (03458970591)</button>
-    <button class="btn" style="background:#37b34a;" onclick="handleBooking('EasyPaisa')">Pay via EasyPaisa (03458970591)</button>
+    <p style="font-size:0.85rem; margin: 10px 0 5px; font-weight:bold; color:#ff1493;">Select Payment Method for 50 PKR Advance Token Fee:</p>
+    <button class="btn" style="background:#6f2da8; margin-bottom:5px;" onclick="showPaymentScreen('JazzCash')">Pay via JazzCash (03458970591)</button>
+    <button class="btn" style="background:#37b34a;" onclick="showPaymentScreen('EasyPaisa')">Pay via EasyPaisa (03458970591)</button>
 
+    <!-- Step 2: Payment Verification Step -->
+    <div id="payment-step" class="payment-box hidden">
+      <h3 style="color:#ff1493; font-size:1.05rem;" id="payment-method-title">Transaction Details</h3>
+      <p style="font-size:0.85rem; margin:6px 0;">Please transfer <strong>50 PKR</strong> advance fee to <strong>03458970591</strong>.</p>
+      <input type="text" id="trx-id" placeholder="Enter Transaction ID (Trx ID)">
+      <label style="font-size:0.8rem; font-weight:bold;">Or Upload Payment Screenshot:</label>
+      <input type="file" id="trx-file" accept="image/*">
+      <button class="btn" style="background:#28a745; margin-top:8px;" onclick="submitTransactionVerification()">Submit Payment & Request Appointment</button>
+    </div>
+
+    <!-- Step 3: Verified / Token Pass Result -->
     <div id="token-result" class="hidden">
       <div id="appointment-card" class="card-pass">
-        <h3 style="color:#ff1493;">Appointment Pass</h3>
+        <h3 style="color:#28a745;">Payment Submitted!</h3>
+        <p style="font-size:0.85rem; margin: 4px 0 10px;">Your appointment token will be active upon owner verification.</p>
         <p><strong>Token:</strong> <span id="token-num"></span></p>
         <p><strong>Name:</strong> <span id="pass-name"></span></p>
         <p><strong>Phone:</strong> <span id="pass-phone"></span></p>
         <p><strong>Service:</strong> <span id="pass-service"></span></p>
-        <p><strong>Date & Time:</strong> <span id="pass-date"></span> at <span id="pass-time"></span></p>
+        <p><strong>Trx ID:</strong> <span id="pass-trx"></span></p>
       </div>
       <button class="btn" style="background:#007bff; margin-top:8px;" onclick="downloadAppointmentPass()">Download Pass Image</button>
-      <button class="btn" style="background:#25d366; margin-top:5px;" onclick="sendWhatsAppConfirmation()">Confirm on WhatsApp</button>
+      <button class="btn" style="background:#25d366; margin-top:5px;" onclick="sendWhatsAppConfirmation()">Send Receipt to WhatsApp</button>
     </div>
   </div>
 
@@ -261,12 +308,15 @@
     <div id="gallery-list" class="grid-container"></div>
   </div>
 
-  <!-- Chat Tab -->
-  <div id="chat-tab" class="tab-content">
-    <h2>Live Chat Support</h2>
-    <div id="chat-box" class="chat-container"></div>
-    <input type="text" id="chat-msg" placeholder="Type message...">
-    <button class="btn" onclick="sendMessage()">Send Message</button>
+  <!-- Location Tab -->
+  <div id="location-tab" class="tab-content">
+    <h2>Parlor Location</h2>
+    <p style="margin-bottom: 10px; font-size: 0.95rem; line-height: 1.4;">
+      📍 <strong>Anaya Beauty Parlor</strong><br>
+      Main Market, Anaya Parlor Road, Pakistan<br>
+      <strong>Contact:</strong> 03458970591
+    </p>
+    <a href="https://maps.google.com" target="_blank" class="btn" style="display:block; text-align:center; text-decoration:none; background:#007bff;">Open in Google Maps</a>
   </div>
 
   <script src="script.js"></script>
