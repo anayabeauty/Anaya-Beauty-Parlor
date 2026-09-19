@@ -29,6 +29,7 @@ const servicesData = [
   { name: "Full Body Waxing", price: "3,500 PKR" }
 ];
 
+let selectedPaymentMethod = "";
 let generatedTokenNumber = "";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -36,8 +37,36 @@ document.addEventListener("DOMContentLoaded", () => {
   listenToParlorStatus();
   listenToProducts();
   listenToGallery();
-  listenToChat();
 });
+
+// Login / Registration Handling
+function handleCustomerLogin() {
+  const name = document.getElementById("user-name").value.trim();
+  const pass = document.getElementById("user-pass").value;
+  const confirmPass = document.getElementById("user-confirm-pass").value;
+
+  if (!name || !pass || !confirmPass) {
+    alert("Please fill in all registration fields.");
+    return;
+  }
+
+  if (pass !== confirmPass) {
+    alert("Passwords do not match. Please try again.");
+    return;
+  }
+
+  document.getElementById("auth-modal").style.display = "none";
+  document.getElementById("cust-name").value = name;
+}
+
+function convertFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
 
 function populateServices() {
   const list = document.getElementById("services-list");
@@ -109,44 +138,61 @@ function listenToGallery() {
   });
 }
 
-function orderProduct(productName) {
-  const name = prompt("Enter your Name:");
-  const phone = prompt("Enter your Phone Number:");
-  const address = prompt("Enter Delivery Address:");
-
-  if (name && phone && address) {
-    db.ref('orders').push({ productName, customerName: name, phone, address, timestamp: firebase.database.ServerValue.TIMESTAMP });
-    const msg = `Hello Anaya Parlor! I want to order:\nProduct: ${productName}\nName: ${name}\nPhone: ${phone}\nAddress: ${address}`;
-    window.open(`https://wa.me/923458970591?text=${encodeURIComponent(msg)}`, '_blank');
-  }
-}
-
-function handleBooking(paymentMethod) {
+function showPaymentScreen(method) {
   const name = document.getElementById("cust-name").value.trim();
   const phone = document.getElementById("cust-phone").value.trim();
   const service = document.getElementById("cust-service").value;
 
   if (!name || !phone || !service) {
-    alert("Please complete all booking fields!");
+    alert("Please complete name, phone, and service selection first!");
     return;
+  }
+
+  selectedPaymentMethod = method;
+  document.getElementById("payment-method-title").textContent = `${method} Payment Instructions`;
+  document.getElementById("payment-step").classList.remove("hidden");
+}
+
+async function submitTransactionVerification() {
+  const name = document.getElementById("cust-name").value.trim();
+  const phone = document.getElementById("cust-phone").value.trim();
+  const service = document.getElementById("cust-service").value;
+  const trxId = document.getElementById("trx-id").value.trim();
+  const fileInput = document.getElementById("trx-file");
+
+  if (!trxId && !fileInput.files[0]) {
+    alert("Please provide either a Transaction ID or upload a payment screenshot.");
+    return;
+  }
+
+  let screenshotBase64 = "";
+  if (fileInput.files[0]) {
+    screenshotBase64 = await convertFileToBase64(fileInput.files[0]);
   }
 
   generatedTokenNumber = `#ABP-${Math.floor(10 + Math.random() * 90)}`;
   const today = new Date();
   const dateStr = today.toLocaleDateString('en-GB');
-  const timeStr = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   document.getElementById("pass-name").textContent = name;
   document.getElementById("pass-phone").textContent = phone;
   document.getElementById("pass-service").textContent = service;
-  document.getElementById("pass-date").textContent = dateStr;
-  document.getElementById("pass-time").textContent = timeStr;
+  document.getElementById("pass-trx").textContent = trxId || "Screenshot Uploaded";
   document.getElementById("token-num").textContent = generatedTokenNumber;
 
   db.ref('bookings').push({
-    token: generatedTokenNumber, name, phone, service, paymentStatus: `50 PKR via ${paymentMethod}`, date: dateStr, time: timeStr
+    token: generatedTokenNumber,
+    name,
+    phone,
+    service,
+    paymentMethod: selectedPaymentMethod,
+    trxId: trxId || "Attached",
+    screenshot: screenshotBase64,
+    status: "Pending Verification",
+    date: dateStr
   });
 
+  document.getElementById("payment-step").classList.add("hidden");
   document.getElementById("token-result").classList.remove("hidden");
 }
 
@@ -164,30 +210,7 @@ function downloadAppointmentPass() {
 function sendWhatsAppConfirmation() {
   const name = document.getElementById("pass-name").textContent;
   const service = document.getElementById("pass-service").textContent;
-  const msg = `Hello Anaya Beauty Parlor!\nI booked an appointment.\nToken: ${generatedTokenNumber}\nName: ${name}\nService: ${service}`;
+  const trx = document.getElementById("pass-trx").textContent;
+  const msg = `Hello Anaya Beauty Parlor!\nI completed payment for my appointment.\nToken: ${generatedTokenNumber}\nName: ${name}\nService: ${service}\nTrx ID: ${trx}`;
   window.open(`https://wa.me/923458970591?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-function sendMessage() {
-  const input = document.getElementById("chat-msg");
-  if (input && input.value.trim() !== "") {
-    db.ref('chats').push({ sender: "Customer", text: input.value.trim(), timestamp: firebase.database.ServerValue.TIMESTAMP });
-    input.value = "";
-  }
-}
-
-function listenToChat() {
-  db.ref('chats').on('value', (snapshot) => {
-    const box = document.getElementById("chat-box");
-    if (!box) return;
-    box.innerHTML = "";
-    if (!snapshot.exists()) return;
-
-    snapshot.forEach((child) => {
-      const msg = child.val();
-      const isUser = msg.sender === "Customer";
-      box.innerHTML += `<div class="msg ${isUser ? 'user' : 'owner'}"><strong>${isUser ? 'You' : 'Owner'}:</strong> ${msg.text}</div>`;
-    });
-    box.scrollTop = box.scrollHeight;
-  });
 }
