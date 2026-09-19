@@ -21,7 +21,12 @@ const servicesData = [
   { name: "Advanced HydraFacial", price: "7,000 PKR" },
   { name: "Haircut", price: "500 - 1,200 PKR" },
   { name: "Hair Styling", price: "500 - 1,000 PKR" },
-  { name: "Blow Dry", price: "500 - 1,000 PKR" }
+  { name: "Blow Dry", price: "500 - 1,000 PKR" },
+  { name: "Party Makeup", price: "3,500 - 5,000 PKR" },
+  { name: "Bridal Makeup", price: "15,000 - 25,000 PKR" },
+  { name: "Manicure & Pedicure", price: "2,000 PKR" },
+  { name: "Eyebrows & Upperlip Threading", price: "200 PKR" },
+  { name: "Full Body Waxing", price: "3,500 PKR" }
 ];
 
 let generatedTokenNumber = "";
