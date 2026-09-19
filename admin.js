@@ -12,153 +12,118 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let isParlorOpen = false;
+let currentStatus = false;
 
-function convertImageToBase64(fileInput, maxWidth = 600, quality = 0.7) {
-  return new Promise((resolve, reject) => {
-    const file = fileInput.files[0];
-    if (!file) return reject("No file selected!");
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (e) => {
-      const img = new Image();
-      img.src = e.target.result;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let w = img.width, h = img.height;
-        if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-    };
-    reader.onerror = (err) => reject(err);
+document.addEventListener("DOMContentLoaded", () => {
+  listenToParlorStatus();
+  listenToBookings();
+  listenToAdminChat();
+});
+
+// Toggle Open / Closed Status
+function listenToParlorStatus() {
+  db.ref('parlorStatus').on('value', (snapshot) => {
+    currentStatus = !!snapshot.val();
+    const display = document.getElementById("status-display");
+    const btn = document.getElementById("toggle-status-btn");
+
+    if (currentStatus) {
+      display.textContent = "OPEN";
+      display.style.color = "green";
+      btn.textContent = "Set Parlor to CLOSED";
+      btn.className = "btn closed-btn";
+    } else {
+      display.textContent = "CLOSED";
+      display.style.color = "red";
+      btn.textContent = "Set Parlor to OPEN";
+      btn.className = "btn toggle-btn";
+    }
   });
 }
 
-db.ref('parlorStatus').on('value', (snapshot) => {
-  isParlorOpen = snapshot.val() || false;
-  const badge = document.getElementById('current-status');
-  badge.textContent = isParlorOpen ? "OPEN TODAY" : "CLOSED TODAY";
-  badge.className = isParlorOpen ? "status-badge open" : "status-badge closed";
-});
-
-function toggleStatus() {
-  db.ref('parlorStatus').set(!isParlorOpen);
+function toggleParlorStatus() {
+  db.ref('parlorStatus').set(!currentStatus);
 }
 
-db.ref('bookings').on('value', (snapshot) => {
-  const container = document.getElementById('bookings-list');
-  container.innerHTML = snapshot.exists() ? "" : `<p style="font-size: 0.85rem; color: #666;">No bookings yet.</p>`;
-  if (!snapshot.exists()) return;
-  Object.values(snapshot.val()).reverse().forEach((b) => {
-    container.innerHTML += `
-      <div class="item-box">
-        <strong>Token ${b.token}</strong> - ${b.time} (${b.date})<br>
-        <strong>Client:</strong> ${b.name} (${b.phone})<br>
-        <strong>Service:</strong> ${b.service}
-      </div>`;
-  });
-});
+// Add Product
+function addProduct() {
+  const name = document.getElementById("prod-name").value.trim();
+  const price = document.getElementById("prod-price").value.trim();
+  const img = document.getElementById("prod-img").value.trim();
 
-async function uploadProduct() {
-  const name = document.getElementById('prod-name').value;
-  const price = document.getElementById('prod-price').value;
-  const fileInput = document.getElementById('prod-file');
-  const btn = document.getElementById('btn-prod');
-
-  try {
-    btn.disabled = true;
-    btn.textContent = "Uploading...";
-    const imgBase64 = await convertImageToBase64(fileInput);
-    db.ref('products').push({ name, price, img: imgBase64 }, (err) => {
-      btn.disabled = false;
-      btn.textContent = "Upload Product";
-      if (!err) {
-        document.getElementById('prod-name').value = '';
-        document.getElementById('prod-price').value = '';
-        fileInput.value = '';
-        alert("Product uploaded!");
-      }
-    });
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = "Upload Product";
-    alert("Error uploading image.");
+  if (!name || !price || !img) {
+    alert("Please fill in all product fields.");
+    return;
   }
+
+  db.ref('products').push({ name, price, img }, (err) => {
+    if (!err) {
+      alert("Product added successfully!");
+      document.getElementById("prod-name").value = "";
+      document.getElementById("prod-price").value = "";
+      document.getElementById("prod-img").value = "";
+    }
+  });
 }
 
-db.ref('products').on('value', (snapshot) => {
-  const list = document.getElementById('products-admin-list');
-  list.innerHTML = "";
-  if (!snapshot.exists()) return;
-  snapshot.forEach((child) => {
-    const p = child.val();
-    list.innerHTML += `<div class="item-box"><strong>${p.name}</strong> - ${p.price} PKR<img src="${p.img}" class="item-img"></div>`;
-  });
-});
+// Add Gallery Photo
+function addGalleryImage() {
+  const title = document.getElementById("gal-title").value.trim();
+  const img = document.getElementById("gal-img").value.trim();
 
-db.ref('orders').on('value', (snapshot) => {
-  const container = document.getElementById('orders-list');
-  container.innerHTML = snapshot.exists() ? "" : `<p style="font-size: 0.85rem; color: #666;">No orders yet.</p>`;
-  if (!snapshot.exists()) return;
-  Object.values(snapshot.val()).reverse().forEach((o) => {
-    container.innerHTML += `<div class="item-box"><strong>Product:</strong> ${o.productName}<br><strong>Customer:</strong> ${o.customerName} (${o.phone})<br><strong>Address:</strong> ${o.address}</div>`;
-  });
-});
-
-async function uploadGalleryPhoto() {
-  const title = document.getElementById('gal-title').value;
-  const fileInput = document.getElementById('gal-file');
-  const btn = document.getElementById('btn-gal');
-
-  try {
-    btn.disabled = true;
-    btn.textContent = "Uploading...";
-    const imgBase64 = await convertImageToBase64(fileInput);
-    db.ref('gallery').push({ title, img: imgBase64 }, (err) => {
-      btn.disabled = false;
-      btn.textContent = "Upload Photo";
-      if (!err) {
-        document.getElementById('gal-title').value = '';
-        fileInput.value = '';
-        alert("Photo uploaded!");
-      }
-    });
-  } catch (err) {
-    btn.disabled = false;
-    btn.textContent = "Upload Photo";
-    alert("Error uploading image.");
+  if (!title || !img) {
+    alert("Please fill in all gallery fields.");
+    return;
   }
+
+  db.ref('gallery').push({ title, img }, (err) => {
+    if (!err) {
+      alert("Photo uploaded to gallery!");
+      document.getElementById("gal-title").value = "";
+      document.getElementById("gal-img").value = "";
+    }
+  });
 }
 
-db.ref('gallery').on('value', (snapshot) => {
-  const list = document.getElementById('gallery-admin-list');
-  list.innerHTML = "";
-  if (!snapshot.exists()) return;
-  snapshot.forEach((child) => {
-    const g = child.val();
-    list.innerHTML += `<div class="item-box"><strong>${g.title}</strong><img src="${g.img}" class="item-img"></div>`;
-  });
-});
+// Listen to Bookings
+function listenToBookings() {
+  db.ref('bookings').on('value', (snapshot) => {
+    const container = document.getElementById("bookings-list");
+    container.innerHTML = snapshot.exists() ? "" : `<p style="font-size:0.85rem; color:#777;">No bookings received yet.</p>`;
 
+    snapshot.forEach((child) => {
+      const b = child.val();
+      container.innerHTML += `
+        <div class="booking-item">
+          <strong>Token: ${b.token}</strong> | Service: ${b.service}<br>
+          Name: ${b.name} | Phone: ${b.phone}<br>
+          Payment: ${b.paymentStatus} | Date: ${b.date} (${b.time})
+        </div>`;
+    });
+  });
+}
+
+// Support Chat
 function sendOwnerMessage() {
-  const input = document.getElementById('owner-msg');
-  if (input.value.trim() !== "") {
+  const input = document.getElementById("admin-chat-msg");
+  if (input && input.value.trim() !== "") {
     db.ref('chats').push({ sender: "Owner", text: input.value.trim(), timestamp: firebase.database.ServerValue.TIMESTAMP });
     input.value = "";
   }
 }
 
-db.ref('chats').on('value', (snapshot) => {
-  const chatBox = document.getElementById('chat-box');
-  chatBox.innerHTML = "";
-  if (!snapshot.exists()) return;
-  snapshot.forEach((child) => {
-    const msg = child.val();
-    const msgClass = msg.sender === "Owner" ? "owner" : "user";
-    chatBox.innerHTML += `<div class="msg ${msgClass}"><strong>${msg.sender}:</strong> ${msg.text}</div>`;
+function listenToAdminChat() {
+  db.ref('chats').on('value', (snapshot) => {
+    const box = document.getElementById("admin-chat-box");
+    if (!box) return;
+    box.innerHTML = "";
+    if (!snapshot.exists()) return;
+
+    snapshot.forEach((child) => {
+      const msg = child.val();
+      const isOwner = msg.sender === "Owner";
+      box.innerHTML += `<div class="msg ${isOwner ? 'owner' : 'user'}"><strong>${isOwner ? 'You' : 'Customer'}:</strong> ${msg.text}</div>`;
+    });
+    box.scrollTop = box.scrollHeight;
   });
-  chatBox.scrollTop = chatBox.scrollHeight;
-});
+}
