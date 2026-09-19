@@ -46,7 +46,7 @@
     }
 
     label { font-size: 0.85rem; font-weight: bold; color: #555; display: block; margin: 8px 0 4px; }
-    input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; background: #fff; }
 
     .btn {
       background: #ff1493;
@@ -62,7 +62,7 @@
     .btn.toggle-btn { background: #28a745; margin-top: 0; }
     .btn.closed-btn { background: #dc3545; }
 
-    .booking-item, .chat-item {
+    .booking-item {
       background: #fafafa;
       border-left: 4px solid #ff1493;
       padding: 10px;
@@ -106,8 +106,8 @@
     <input type="text" id="prod-name" placeholder="e.g. Whitening Cream">
     <label>Price (PKR)</label>
     <input type="text" id="prod-price" placeholder="e.g. 1200">
-    <label>Image URL</label>
-    <input type="text" id="prod-img" placeholder="https://example.com/image.jpg">
+    <label>Select Product Image File</label>
+    <input type="file" id="prod-file" accept="image/*">
     <button class="btn" onclick="addProduct()">Publish Product</button>
   </div>
 
@@ -116,8 +116,8 @@
     <h2>Add Photo to Gallery</h2>
     <label>Photo Title</label>
     <input type="text" id="gal-title" placeholder="e.g. Bridal Makeup Result">
-    <label>Image URL</label>
-    <input type="text" id="gal-img" placeholder="https://example.com/photo.jpg">
+    <label>Select Photo File</label>
+    <input type="file" id="gal-file" accept="image/*">
     <button class="btn" onclick="addGalleryImage()">Upload to Gallery</button>
   </div>
 
