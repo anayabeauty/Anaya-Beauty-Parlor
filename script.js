@@ -39,14 +39,14 @@ document.addEventListener("DOMContentLoaded", () => {
   listenToGallery();
 });
 
-// Login / Registration Handling
+// Customer Login & Transition into Parlor
 function handleCustomerLogin() {
   const name = document.getElementById("user-name").value.trim();
   const pass = document.getElementById("user-pass").value;
   const confirmPass = document.getElementById("user-confirm-pass").value;
 
   if (!name || !pass || !confirmPass) {
-    alert("Please fill in all registration fields.");
+    alert("Please fill in all details to enter the parlor.");
     return;
   }
 
@@ -55,7 +55,12 @@ function handleCustomerLogin() {
     return;
   }
 
-  document.getElementById("auth-modal").style.display = "none";
+  const modal = document.getElementById("auth-modal");
+  modal.style.opacity = "0";
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 400);
+
   document.getElementById("cust-name").value = name;
 }
 
