@@ -1,140 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anaya Parlor - Owner Panel</title>
+const firebaseConfig = {
+  apiKey: "AIzaSyDzTE1SKw75r4RwWq2KtP-C9F_iipgJDtc",
+  authDomain: "anaya-beauty-parlor.firebaseapp.com",
+  databaseURL: "https://anaya-beauty-parlor-default-rtdb.firebaseio.com",
+  projectId: "anaya-beauty-parlor",
+  storageBucket: "anaya-beauty-parlor.firebasestorage.app",
+  messagingSenderId: "191638677242",
+  appId: "1:191638677242:web:fa452a7801633617668b43",
+  measurementId: "G-K2S36VDKNN"
+};
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    
-    body {
-      background: #f4f6f9;
-      padding: 15px;
-      color: #333;
+let currentStatus = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+  listenToParlorStatus();
+  listenToBookings();
+  listenToAdminChat();
+});
+
+// Helper function to convert Image File to Base64 String
+function convertFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+// Toggle Open / Closed Status
+function listenToParlorStatus() {
+  db.ref('parlorStatus').on('value', (snapshot) => {
+    currentStatus = !!snapshot.val();
+    const display = document.getElementById("status-display");
+    const btn = document.getElementById("toggle-status-btn");
+
+    if (currentStatus) {
+      display.textContent = "OPEN";
+      display.style.color = "green";
+      btn.textContent = "Set Parlor to CLOSED";
+      btn.className = "btn closed-btn";
+    } else {
+      display.textContent = "CLOSED";
+      display.style.color = "red";
+      btn.textContent = "Set Parlor to OPEN";
+      btn.className = "btn toggle-btn";
     }
+  });
+}
 
-    header {
-      background: #ff1493;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+function toggleParlorStatus() {
+  db.ref('parlorStatus').set(!currentStatus);
+}
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border: 1px solid #e0e0e0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+// Add Product with File Upload
+async function addProduct() {
+  const name = document.getElementById("prod-name").value.trim();
+  const price = document.getElementById("prod-price").value.trim();
+  const fileInput = document.getElementById("prod-file");
 
-    h2 {
-      font-size: 1.1rem;
-      color: #ff1493;
-      margin-bottom: 12px;
-      border-bottom: 1px solid #f0f0f0;
-      padding-bottom: 6px;
-    }
+  if (!name || !price || !fileInput.files[0]) {
+    alert("Please fill in all details and select an image file.");
+    return;
+  }
 
-    label { font-size: 0.85rem; font-weight: bold; color: #555; display: block; margin: 8px 0 4px; }
-    input[type="text"], input[type="file"] { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none; background: #fff; }
+  try {
+    const imgBase64 = await convertFileToBase64(fileInput.files[0]);
+    db.ref('products').push({ name, price, img: imgBase64 }, (err) => {
+      if (!err) {
+        alert("Product published successfully!");
+        document.getElementById("prod-name").value = "";
+        document.getElementById("prod-price").value = "";
+        fileInput.value = "";
+      }
+    });
+  } catch (err) {
+    alert("Error processing image file.");
+  }
+}
 
-    .btn {
-      background: #ff1493;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      width: 100%;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .btn.toggle-btn { background: #28a745; margin-top: 0; }
-    .btn.closed-btn { background: #dc3545; }
+// Add Gallery Photo with File Upload
+async function addGalleryImage() {
+  const title = document.getElementById("gal-title").value.trim();
+  const fileInput = document.getElementById("gal-file");
 
-    .booking-item {
-      background: #fafafa;
-      border-left: 4px solid #ff1493;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-    }
+  if (!title || !fileInput.files[0]) {
+    alert("Please enter a title and select an image file.");
+    return;
+  }
 
-    .chat-box {
-      height: 180px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      background: #fff;
-    }
-    .msg { padding: 5px 8px; border-radius: 6px; margin-bottom: 5px; max-width: 85%; font-size: 0.8rem; }
-    .msg.user { background: #f0f0f0; color: #333; margin-right: auto; }
-    .msg.owner { background: #ff1493; color: white; margin-left: auto; }
-  </style>
-</head>
-<body>
+  try {
+    const imgBase64 = await convertFileToBase64(fileInput.files[0]);
+    db.ref('gallery').push({ title, img: imgBase64 }, (err) => {
+      if (!err) {
+        alert("Photo uploaded to gallery!");
+        document.getElementById("gal-title").value = "";
+        fileInput.value = "";
+      }
+    });
+  } catch (err) {
+    alert("Error processing image file.");
+  }
+}
 
-  <header>
-    <h1>Owner Admin Dashboard</h1>
-    <p style="font-size: 0.85rem;">Anaya Beauty Parlor Control Panel</p>
-  </header>
+// Listen to Bookings
+function listenToBookings() {
+  db.ref('bookings').on('value', (snapshot) => {
+    const container = document.getElementById("bookings-list");
+    container.innerHTML = snapshot.exists() ? "" : `<p style="font-size:0.85rem; color:#777;">No bookings received yet.</p>`;
 
-  <!-- Parlor Status Toggle -->
-  <div class="card">
-    <h2>Shop Status Toggle</h2>
-    <p style="font-size: 0.85rem; margin-bottom: 8px;">Current Status: <strong id="status-display">Loading...</strong></p>
-    <button id="toggle-status-btn" class="btn toggle-btn" onclick="toggleParlorStatus()">Switch Status</button>
-  </div>
+    snapshot.forEach((child) => {
+      const b = child.val();
+      container.innerHTML += `
+        <div class="booking-item">
+          <strong>Token: ${b.token}</strong> | Service: ${b.service}<br>
+          Name: ${b.name} | Phone: ${b.phone}<br>
+          Payment: ${b.paymentStatus} | Date: ${b.date} (${b.time})
+        </div>`;
+    });
+  });
+}
 
-  <!-- Add New Product -->
-  <div class="card">
-    <h2>Add New Product to Store</h2>
-    <label>Product Name</label>
-    <input type="text" id="prod-name" placeholder="e.g. Whitening Cream">
-    <label>Price (PKR)</label>
-    <input type="text" id="prod-price" placeholder="e.g. 1200">
-    <label>Select Product Image File</label>
-    <input type="file" id="prod-file" accept="image/*">
-    <button class="btn" onclick="addProduct()">Publish Product</button>
-  </div>
+// Support Chat
+function sendOwnerMessage() {
+  const input = document.getElementById("admin-chat-msg");
+  if (input && input.value.trim() !== "") {
+    db.ref('chats').push({ sender: "Owner", text: input.value.trim(), timestamp: firebase.database.ServerValue.TIMESTAMP });
+    input.value = "";
+  }
+}
 
-  <!-- Add Gallery Image -->
-  <div class="card">
-    <h2>Add Photo to Gallery</h2>
-    <label>Photo Title</label>
-    <input type="text" id="gal-title" placeholder="e.g. Bridal Makeup Result">
-    <label>Select Photo File</label>
-    <input type="file" id="gal-file" accept="image/*">
-    <button class="btn" onclick="addGalleryImage()">Upload to Gallery</button>
-  </div>
+function listenToAdminChat() {
+  db.ref('chats').on('value', (snapshot) => {
+    const box = document.getElementById("admin-chat-box");
+    if (!box) return;
+    box.innerHTML = "";
+    if (!snapshot.exists()) return;
 
-  <!-- Recent Bookings -->
-  <div class="card">
-    <h2>Customer Bookings</h2>
-    <div id="bookings-list"><p style="font-size:0.85rem; color:#777;">No bookings received yet.</p></div>
-  </div>
-
-  <!-- Support Chat -->
-  <div class="card">
-    <h2>Live Support Chat</h2>
-    <div id="admin-chat-box" class="chat-box"></div>
-    <input type="text" id="admin-chat-msg" placeholder="Reply to customer...">
-    <button class="btn" onclick="sendOwnerMessage()">Send Reply</button>
-  </div>
-
-  <script src="admin.js"></script>
-</body>
-</html>
+    snapshot.forEach((child) => {
+      const msg = child.val();
+      const isOwner = msg.sender === "Owner";
+      box.innerHTML += `<div class="msg ${isOwner ? 'owner' : 'user'}"><strong>${isOwner ? 'You' : 'Customer'}:</strong> ${msg.text}</div>`;
+    });
+    box.scrollTop = box.scrollHeight;
+  });
+}
