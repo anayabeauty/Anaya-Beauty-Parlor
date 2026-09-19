@@ -20,32 +20,38 @@
       color: #333;
     }
 
-    /* Auth Modal Overlay */
+    /* Auth Fullscreen Overlay with Makeup Background */
     .auth-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
+                  url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
+      transition: opacity 0.4s ease;
     }
 
     .auth-box {
-      background: #fff;
-      padding: 25px;
-      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 30px 25px;
+      border-radius: 20px;
       width: 90%;
-      max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-width: 420px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
       border: 2px solid #ff1493;
+      text-align: center;
+      backdrop-filter: blur(5px);
     }
 
     .auth-box h2 {
-      text-align: center;
       color: #ff1493;
-      margin-bottom: 15px;
-      font-size: 1.5rem;
+      margin-bottom: 18px;
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: 'Playfair Display', Georgia, serif;
+      letter-spacing: 0.5px;
       border-bottom: none;
     }
 
@@ -156,11 +162,11 @@
 
     input, select {
       width: 100%;
-      padding: 10px 12px;
-      margin-bottom: 10px;
+      padding: 11px 14px;
+      margin-bottom: 12px;
       border: 1px solid #ffb6c1;
-      border-radius: 8px;
-      font-size: 0.9rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
       outline: none;
     }
     input:focus, select:focus { border-color: #ff1493; }
@@ -169,13 +175,13 @@
       background: #ff1493;
       color: white;
       border: none;
-      padding: 11px;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 10px;
       font-weight: bold;
       width: 100%;
       cursor: pointer;
       margin-top: 5px;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       transition: background 0.2s;
     }
     .btn:hover { opacity: 0.95; }
@@ -229,10 +235,10 @@
 </head>
 <body>
 
-  <!-- Account Registration / Login Modal -->
+  <!-- Clear Fullscreen Makeup Login Overlay -->
   <div id="auth-modal" class="auth-overlay">
     <div class="auth-box">
-      <h2>Customer Sign In</h2>
+      <h2>Anaya Beauty Parlor</h2>
       <input type="text" id="user-name" placeholder="Full Name">
       <input type="password" id="user-pass" placeholder="Password">
       <input type="password" id="user-confirm-pass" placeholder="Confirm Password">
@@ -270,7 +276,7 @@
     <button class="btn" style="background:#6f2da8; margin-bottom:5px;" onclick="showPaymentScreen('JazzCash')">Pay via JazzCash (03458970591)</button>
     <button class="btn" style="background:#37b34a;" onclick="showPaymentScreen('EasyPaisa')">Pay via EasyPaisa (03458970591)</button>
 
-    <!-- Step 2: Payment Verification Step -->
+    <!-- Payment Verification Step -->
     <div id="payment-step" class="payment-box hidden">
       <h3 style="color:#ff1493; font-size:1.05rem;" id="payment-method-title">Transaction Details</h3>
       <p style="font-size:0.85rem; margin:6px 0;">Please transfer <strong>50 PKR</strong> advance fee to <strong>03458970591</strong>.</p>
@@ -280,7 +286,7 @@
       <button class="btn" style="background:#28a745; margin-top:8px;" onclick="submitTransactionVerification()">Submit Payment & Request Appointment</button>
     </div>
 
-    <!-- Step 3: Verified / Token Pass Result -->
+    <!-- Verified / Token Pass Result -->
     <div id="token-result" class="hidden">
       <div id="appointment-card" class="card-pass">
         <h3 style="color:#28a745;">Payment Submitted!</h3>
