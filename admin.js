@@ -20,6 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
   listenToAdminChat();
 });
 
+// Helper function to convert Image File to Base64 String
+function convertFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
 // Toggle Open / Closed Status
 function listenToParlorStatus() {
   db.ref('parlorStatus').on('value', (snapshot) => {
@@ -45,44 +55,54 @@ function toggleParlorStatus() {
   db.ref('parlorStatus').set(!currentStatus);
 }
 
-// Add Product
-function addProduct() {
+// Add Product with File Upload
+async function addProduct() {
   const name = document.getElementById("prod-name").value.trim();
   const price = document.getElementById("prod-price").value.trim();
-  const img = document.getElementById("prod-img").value.trim();
+  const fileInput = document.getElementById("prod-file");
 
-  if (!name || !price || !img) {
-    alert("Please fill in all product fields.");
+  if (!name || !price || !fileInput.files[0]) {
+    alert("Please fill in all details and select an image file.");
     return;
   }
 
-  db.ref('products').push({ name, price, img }, (err) => {
-    if (!err) {
-      alert("Product added successfully!");
-      document.getElementById("prod-name").value = "";
-      document.getElementById("prod-price").value = "";
-      document.getElementById("prod-img").value = "";
-    }
-  });
+  try {
+    const imgBase64 = await convertFileToBase64(fileInput.files[0]);
+    db.ref('products').push({ name, price, img: imgBase64 }, (err) => {
+      if (!err) {
+        alert("Product published successfully!");
+        document.getElementById("prod-name").value = "";
+        document.getElementById("prod-price").value = "";
+        fileInput.value = "";
+      }
+    });
+  } catch (err) {
+    alert("Error processing image file.");
+  }
 }
 
-// Add Gallery Photo
-function addGalleryImage() {
+// Add Gallery Photo with File Upload
+async function addGalleryImage() {
   const title = document.getElementById("gal-title").value.trim();
-  const img = document.getElementById("gal-img").value.trim();
+  const fileInput = document.getElementById("gal-file");
 
-  if (!title || !img) {
-    alert("Please fill in all gallery fields.");
+  if (!title || !fileInput.files[0]) {
+    alert("Please enter a title and select an image file.");
     return;
   }
 
-  db.ref('gallery').push({ title, img }, (err) => {
-    if (!err) {
-      alert("Photo uploaded to gallery!");
-      document.getElementById("gal-title").value = "";
-      document.getElementById("gal-img").value = "";
-    }
-  });
+  try {
+    const imgBase64 = await convertFileToBase64(fileInput.files[0]);
+    db.ref('gallery').push({ title, img: imgBase64 }, (err) => {
+      if (!err) {
+        alert("Photo uploaded to gallery!");
+        document.getElementById("gal-title").value = "";
+        fileInput.value = "";
+      }
+    });
+  } catch (err) {
+    alert("Error processing image file.");
+  }
 }
 
 // Listen to Bookings
